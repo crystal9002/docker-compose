@@ -1,0 +1,39 @@
+version: '2'
+services:
+
+  php-fpm: 
+    container_name: php-fpm
+    build: ./php
+    volumes:
+      - ./code:/usr/local/www
+      - ./php/logs:/usr/local/log/
+      - ./php/conf:/usr/local/etc/php-fpm.d
+    expose:
+      - "9000"
+
+  nginx:
+    container_name: nginx
+    image: daocloud.io/library/nginx
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/logs:/usr/local/nginx/logs
+      - ./code:/usr/local/www
+    ports:
+      - "80:80"
+    depends_on:
+      - php-fpm
+
+
+  mysql:
+    container_name: mysql
+    image: daocloud.io/library/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+        - ./mysql/data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+networks:
+  default:
+    driver: bridge

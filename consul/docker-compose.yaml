@@ -1,0 +1,107 @@
+version: '2'
+services:
+
+  # consul + registator + consul-template
+
+  consul-server1:
+    container_name: consul-server1
+    restart: always
+    image: consul
+    volumes:
+      - ./data1:/consul/data
+      - ./data1/conf.d:/consul/conf.d
+    ports:
+      - 8300:8300
+      - 8301:8301
+      - 8301:8301/udp
+      - 8302:8302
+      - 8302:8302/udp
+      - 8400:8400
+      - 8500:8500 # http
+      - 8600:8600 # dns
+      - 8053:53/udp
+    networks:
+      default:
+      consul-network:
+        ipv4_address: ${CONSUL_SVR1_IP}
+    command: consul agent -node=srv1 -config-dir=/consul/conf.d -data-dir=/consul/data -bootstrap-expect 2 -server -ui -bind=${CONSUL_SVR1_IP}  -client=${CONSUL_CLIENT_BIND}
+
+  consul-server2:
+    container_name: consul-server2
+    restart: always
+    image: consul
+    volumes:
+      - ./data2:/consul/data
+      - ./data2/conf.d:/consul/conf.d
+    ports:
+      - 7300:8300
+      - 7301:8301
+      - 7301:8301/udp
+      - 7302:8302
+      - 7302:8302/udp
+      - 7400:8400
+      - 7500:8500
+      - 7600:8600 # dns
+      - 7053:53/udp
+    networks:
+      default:
+      consul-network:
+        ipv4_address: ${CONSUL_SVR2_IP} 
+    command: consul agent -node=srv2 -config-dir=/consul/conf.d -data-dir=/consul/data -bootstrap-expect 2 -server -ui -client=${CONSUL_CLIENT_BIND} -bind=${CONSUL_SVR2_IP} -join=${CONSUL_SVR1_IP}
+
+  consul-server3:
+    container_name: consul-server3
+    restart: always
+    image: consul
+    volumes:
+      - ./data3:/consul/data
+      - ./data3/conf.d:/consul/conf.d
+    ports:
+      - 9300:8300 # server
+      - 9301:8301 # serf_lan
+      - 9301:8301/udp
+      - 9302:8302 # serf_wan
+      - 9302:8302/udp
+      - 9400:8400 # rpc
+      - 9500:8500 # http
+      - 9600:8600 # dns
+      - 9053:53/udp
+    networks:
+      default:
+      consul-network:
+        ipv4_address: ${CONSUL_SVR3_IP} 
+    command: consul agent -node=srv3 -config-dir=/consul/conf.d -data-dir=/consul/data -bootstrap-expect 2 -server -ui -client=${CONSUL_CLIENT_BIND} -bind=${CONSUL_SVR3_IP} -join=${CONSUL_SVR1_IP}
+
+  consul-client1:
+    container_name: consul-client1
+    restart: always
+    image: consul
+    volumes:
+      - ./data4:/consul/data
+      - ./data4/conf.d:/consul/conf.d
+    ports:
+      - 6300:8300
+      - 6301:8301
+      - 6301:8301/udp
+      - 6302:8302
+      - 6302:8302/udp
+      - 6400:8400
+      - 6500:8500
+      - 6600:8600 # dns
+      - 6053:53/udp
+    networks:
+      default:
+      consul-network:
+        ipv4_address: ${CONSUL_CLIENT1_IP} 
+    command: consul agent -node=client1 -config-dir=/consul/conf.d -data-dir=/consul/data -ui -client=${CONSUL_CLIENT_BIND} -bind=${CONSUL_CLIENT1_IP} -join=${CONSUL_SVR1_IP} 
+
+networks:
+  default:
+    driver: bridge
+  consul-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${CONSUL_NETWORK_SUBNET}
+          gateway: ${CONSUL_NETWORK_GATEWAY}
+

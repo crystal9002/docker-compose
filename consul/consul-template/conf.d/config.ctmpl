@@ -1,0 +1,3 @@
+{{range service "jetty"}}
+	server {{.Address}}:{{.Port}};
+{{end}} 

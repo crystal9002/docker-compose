@@ -1,0 +1,8 @@
+{
+  "service": {
+  	"id":"web1",
+    "name": "web",
+    "tags": ["master"],
+    "port": 80
+  }
+}
