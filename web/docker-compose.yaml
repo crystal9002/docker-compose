@@ -5,32 +5,30 @@ services:
     container_name: php-fpm
     build: ./php
     volumes:
-      - ./code:/usr/local/www
-      - ./php/logs:/usr/local/log/
-      - ./php/conf:/usr/local/etc/php-fpm.d
+      - /usr/local/www:/usr/local/www
     expose:
       - "9000"
 
   nginx:
     container_name: nginx
-    image: daocloud.io/library/nginx
+    image: nginx
     volumes:
-      - ./nginx/conf:/etc/nginx/conf.d
-      - ./nginx/logs:/usr/local/nginx/logs
-      - ./code:/usr/local/www
+      - /usr/local/nginx/conf:/etc/nginx/conf.d
+      - /usr/local/nginx/logs:/usr/local/nginx/logs
+      - /usr/local/www:/usr/local/www
     ports:
       - "80:80"
     depends_on:
       - php-fpm
 
-
   mysql:
     container_name: mysql
-    image: daocloud.io/library/mysql
+    image: mysql:5.7
+    command: "--default-authentication-plugin=mysql_native_password --innodb_use_native_aio=0"
     environment:
       - MYSQL_ROOT_PASSWORD=123456
     volumes:
-        - ./mysql/data:/var/lib/mysql
+        - /usr/local/mysql/data:/var/lib/mysql
     ports:
       - "3306:3306"
 
